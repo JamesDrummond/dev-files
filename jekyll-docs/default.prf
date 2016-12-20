@@ -18,6 +18,8 @@ ignore = Path _docs/che/*
 ignore = Path _docs/che
 ignore = Path docs/images/*
 ignore = Path docs/images
+ignore = Path .jekyll-metadata
+ignore = Path .sass-cache
 #ignore = Name temp.*
 
 # Use this command for displaying diffs
