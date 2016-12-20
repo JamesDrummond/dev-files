@@ -12,8 +12,8 @@ dontchmod = true
 ignorearchives = true
 
 # Some regexps specifying names and paths to ignore
-# ignore = Path _site/*
-# ignore = Path _site
+ignore = Path _site/*
+ignore = Path _site
 ignore = Path _docs/che/*
 ignore = Path _docs/che
 ignore = Path docs/images/*

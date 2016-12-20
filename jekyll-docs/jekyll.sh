@@ -31,24 +31,25 @@ init_global_variables() {
     DOCKER_CLEAN_OLD_COMMAND="docker rm -f \$(docker ps -aq --filter \"name=${CONTAINER_NAME}\") &&
         docker volume rm $(docker volume ls -qf dangling=true) "
     
-    COPY_SSHKEY_COMMAND="docker cp ${CONTAINER_NAME}:/home/jekyll/.ssh/id_rsa ${HOME}/.ssh/jekyll_id_rsa && \
-      chown -R root:root ${HOME}/.ssh/jekyll_id_rsa && chmod 600 ${HOME}/.ssh/jekyll_id_rsa"
+    COPY_SSHKEY_COMMAND="docker exec ${CONTAINER_NAME} /usr/bin/entrypoint.sh && \
+        docker cp ${CONTAINER_NAME}:/home/jekyll/.ssh/id_rsa ${HOME}/.ssh/jekyll_id_rsa${CONTAINER_NAME} && \
+        chown -R root:root ${HOME}/.ssh/jekyll_id_rsa${CONTAINER_NAME} && chmod 600 ${HOME}/.ssh/jekyll_id_rsa${CONTAINER_NAME}"
     
     export UNISON_SYNC_PATH=${DOC_PATH}
     export UNISON_SYNC_PATH_CHE=${CHE_DOC_PATH}
     UNISON_REPEAT=""
     
-    chmod u+x ${PWD}/unison
-    rm -rf ${PWD}/.unison
+    # chmod u+x ${PWD}/unison
+    rm -rf ${PWD}/.unison${CONTAINER_NAME}
     rm -rf ${UNISON_SYNC_PATH}/_site
-    mkdir -p ${PWD}/.unison 
-    cp default.prf ${PWD}/.unison/ 
-    UNISON_AGENT_COMMAND="UNISON=${PWD}/.unison ${PWD}/unison ${UNISON_SYNC_PATH} ssh://\${UNISON_SSH_USER}@\${SSH_IP}:\${UNISON_SSH_PORT}//srv/jekyll 
-        \${UNISON_REPEAT} -sshargs '-i ${HOME}/.ssh/jekyll_id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' ${DEBUG_UNISON}" 
+    mkdir -p ${PWD}/.unison${CONTAINER_NAME} 
+    cp default.prf ${PWD}/.unison${CONTAINER_NAME}/ 
+    UNISON_AGENT_COMMAND="UNISON=${PWD}/.unison ${PWD}/unison -force ${UNISON_SYNC_PATH} ${UNISON_SYNC_PATH} ssh://\${UNISON_SSH_USER}@\${SSH_IP}:\${UNISON_SSH_PORT}//srv/jekyll 
+        \${UNISON_REPEAT} -sshargs '-i ${HOME}/.ssh/jekyll_id_rsa${CONTAINER_NAME} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' ${DEBUG_UNISON}" 
     if [ "$UNISON_SYNC_PATH_CHE" != "" ]; then
         UNISON_AGENT_COMMAND="${UNISON_AGENT_COMMAND} &&
-        UNISON=${PWD}/.unison ${PWD}/unison ${CHE_DOC_PATH} ssh://\${UNISON_SSH_USER}@\${SSH_IP}:\${UNISON_SSH_PORT}//srv/jekyll/_docs/che 
-        \${UNISON_REPEAT} -sshargs '-i ${HOME}/.ssh/jekyll_id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' ${DEBUG_UNISON}" 
+        UNISON=${PWD}/.unison ${PWD}/unison -force ${CHE_DOC_PATH} ${CHE_DOC_PATH} ssh://\${UNISON_SSH_USER}@\${SSH_IP}:\${UNISON_SSH_PORT}//srv/jekyll/_docs/che 
+        \${UNISON_REPEAT} -sshargs '-i ${HOME}/.ssh/jekyll_id_rsa${CONTAINER_NAME} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' ${DEBUG_UNISON}" 
     fi
     
     
@@ -75,7 +76,7 @@ check_status_unison() {
     
 	if [ $status -ne 0 ]; then
 	  if [ $status -ne 1 ]; then
-	    error "ERROR: Fatal error occurred ($status)"
+	    error "ERROR Unison: Fatal error occurred ($status)"
 	    stop_sync
 	  else
 	    warn "Error occurred ($status)."
@@ -119,7 +120,7 @@ jekyll.sh <docs-path> [<port>]
   fi
   # used in compose file
   export JEKYLL_BIND_PORT="${PORT}:"
-  export CONTAINER_NAME="codenvy_docs_port${PORT}"
+  export CONTAINER_NAME="codenvy_docs_${PORT}_port"
 }
 
 usage () {
@@ -205,27 +206,31 @@ if [ ! -e /var/run/docker.sock ]; then
     error "(${CHE_MINI_PRODUCT_NAME} Jekyll): File /var/run/docker.sock does not exist. Add to server extra volume mounts and restart server."
     exit 1
 fi
-eval ${DOCKER_CLEAN_OLD_COMMAND} ${DEBUG}
+eval ${DOCKER_CLEAN_OLD_COMMAND}
 
 
 # docker-compose had error when put into eval. Maybe due to losing current directory value of build.
 info "(${CHE_MINI_PRODUCT_NAME} Jekyll): Starting Jekyll container. Jekyll server will start after initial unison sync of /srv/jekyll folder."
 if [ "$DEBUG" = "" ]; then
-    docker-compose --file "${REFERENCE_CONTAINER_COMPOSE_FILE}" -p "${CHE_MINI_PRODUCT_NAME}" up -d --build 
+    docker-compose --file "${REFERENCE_CONTAINER_COMPOSE_FILE}" -p "${CONTAINER_NAME}" up -d --no-recreate docs
 else
 {
-    docker-compose --file "${REFERENCE_CONTAINER_COMPOSE_FILE}" -p "${CHE_MINI_PRODUCT_NAME}" up -d --build 
+    docker-compose --file "${REFERENCE_CONTAINER_COMPOSE_FILE}" -p "${CONTAINER_NAME}" up -d --no-recreate docs
 } > /dev/null 2>&1
 fi
 check_status
+info "(${CHE_MINI_PRODUCT_NAME} Jekyll): Compose up complete."
+info "${COPY_SSHKEY_COMMAND}"
 eval ${COPY_SSHKEY_COMMAND}
 check_status
+info "(${CHE_MINI_PRODUCT_NAME} Jekyll): SSH key copy complete."
 
 export SSH_IP=$(docker inspect --format='{{.NetworkSettings.Gateway}}' $(docker ps -aq --filter "name=${CONTAINER_NAME}") )
 if [ "${SSH_IP}" = "" ]; then
     error "(${CHE_MINI_PRODUCT_NAME} Jekyll): Something went wrong. No gateway address assigned to container." 
 fi
 export UNISON_SSH_PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "22/tcp") 0).HostPort}}' $(docker ps -aq --filter "name=${CONTAINER_NAME}") )
+info "(${CHE_MINI_PRODUCT_NAME} Jekyll): UNISON_SSH_PORT: $UNISON_SSH_PORT ."
 export JEKYLL_PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "4000/tcp") 0).HostPort}}' $(docker ps -aq --filter "name=${CONTAINER_NAME}") )
 export UNISON_SSH_USER=$(docker inspect --format='{{.Config.User}}' $(docker ps -aq --filter "name=${CONTAINER_NAME}") )
 

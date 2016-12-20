@@ -2,6 +2,8 @@ version: '2'
 services:
   docs:
     build: .
+    image: ${CONTAINER_NAME}
+    user: jekyll
     ports:
       - "${JEKYLL_BIND_PORT}4000"
       - "22"

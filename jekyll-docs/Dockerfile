@@ -11,14 +11,15 @@ FROM jekyll/jekyll:3.2.1
 
 ENV UNISON_VERSION=2.40.102
 
-RUN apk add --update build-base curl bash openssh && \
-    apk add ocaml --update-cache --repository http://dl-6.alpinelinux.org/alpine/edge/testing/ --allow-untrusted && \
+RUN apk update && apk upgrade && \
+    apk add build-base curl alpine-sdk openssh bash nano ncurses-dev  && \
+    cd /etc/apk/keys && curl -OL http://www.cl.cam.ac.uk/~avsm2/alpine-ocaml/x86_64/anil@recoil.org-5687cc79.rsa.pub && \
+    apk add ocaml --update-cache --repository http://www.cl.cam.ac.uk/~avsm2/alpine-ocaml/3.4 --allow-untrusted && \
     curl -L https://www.seas.upenn.edu/~bcpierce/unison/download/releases/unison-$UNISON_VERSION/unison-$UNISON_VERSION.tar.gz | tar xzv -C /tmp && \
     cd /tmp/unison-$UNISON_VERSION && \
     make && \
     cp /tmp/unison-$UNISON_VERSION/unison /usr/local/bin && \
     echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    ssh-keygen -f ${HOME}/.ssh/id_rsa -t rsa -q -N ''  && \
     chown -R jekyll:jekyll /srv/jekyll
     
 RUN apk del ocaml curl build-base && \
@@ -27,17 +28,17 @@ RUN apk del ocaml curl build-base && \
     echo "LogLevel VERBOSE" >> /etc/ssh/sshd_config && \
     echo "SyslogFacility AUTH" >> /etc/ssh/sshd_config && \
     rm -rf /tmp /var/cache/apk/* /var/lib/apt/lists/* && \
-    ssh-keygen -A && \
     syslogd && passwd -d jekyll && \
     mv /usr/local/bin/unison /bin/unison && \
     gem install kramdown rouge
+ 
+RUN echo "#!/bin/bash" >> /usr/bin/entrypoint.sh && \
+    echo "ssh-keygen -f \${HOME}/.ssh/id_rsa -t rsa -q -C '' -N ''" >> /usr/bin/entrypoint.sh && \
+    echo "mv /home/jekyll/.ssh/id_rsa.pub /home/jekyll/.ssh/authorized_keys" >> /usr/bin/entrypoint.sh && \
+    echo "chmod 600 /home/jekyll/.ssh/authorized_keys" >> /usr/bin/entrypoint.sh && \
+    chmod 755 /usr/bin/entrypoint.sh
     
 USER jekyll
-    
-RUN mkdir -m 700 /home/jekyll/.ssh && ssh-keygen -f ${HOME}/.ssh/id_rsa -t rsa -q -C '' -N '' && \
-    mv /home/jekyll/.ssh/id_rsa.pub /home/jekyll/.ssh/authorized_keys && \
-    chmod 600 /home/jekyll/.ssh/authorized_keys 
-
 
 WORKDIR /srv/jekyll
 
