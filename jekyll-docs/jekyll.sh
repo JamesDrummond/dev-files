@@ -39,16 +39,16 @@ init_global_variables() {
     export UNISON_SYNC_PATH_CHE=${CHE_DOC_PATH}
     UNISON_REPEAT=""
     
-    # chmod u+x ${PWD}/unison
+    chmod u+x ${PWD}/unison
     rm -rf ${PWD}/.unison${CONTAINER_NAME}
     rm -rf ${UNISON_SYNC_PATH}/_site
     mkdir -p ${PWD}/.unison${CONTAINER_NAME} 
     cp default.prf ${PWD}/.unison${CONTAINER_NAME}/ 
-    UNISON_AGENT_COMMAND="UNISON=${PWD}/.unison ${PWD}/unison -force ${UNISON_SYNC_PATH} ${UNISON_SYNC_PATH} ssh://\${UNISON_SSH_USER}@\${SSH_IP}:\${UNISON_SSH_PORT}//srv/jekyll 
+    UNISON_AGENT_COMMAND="UNISON=${PWD}/.unison${CONTAINER_NAME} ${PWD}/unison -force ${UNISON_SYNC_PATH} ${UNISON_SYNC_PATH} ssh://\${UNISON_SSH_USER}@\${SSH_IP}:\${UNISON_SSH_PORT}//srv/jekyll 
         \${UNISON_REPEAT} -sshargs '-i ${HOME}/.ssh/jekyll_id_rsa${CONTAINER_NAME} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' ${DEBUG_UNISON}" 
     if [ "$UNISON_SYNC_PATH_CHE" != "" ]; then
         UNISON_AGENT_COMMAND="${UNISON_AGENT_COMMAND} &&
-        UNISON=${PWD}/.unison ${PWD}/unison -force ${CHE_DOC_PATH} ${CHE_DOC_PATH} ssh://\${UNISON_SSH_USER}@\${SSH_IP}:\${UNISON_SSH_PORT}//srv/jekyll/_docs/che 
+        UNISON=${PWD}/.unison${CONTAINER_NAME} ${PWD}/unison -force ${CHE_DOC_PATH} ${CHE_DOC_PATH} ssh://\${UNISON_SSH_USER}@\${SSH_IP}:\${UNISON_SSH_PORT}//srv/jekyll/_docs/che 
         \${UNISON_REPEAT} -sshargs '-i ${HOME}/.ssh/jekyll_id_rsa${CONTAINER_NAME} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' ${DEBUG_UNISON}" 
     fi
     
