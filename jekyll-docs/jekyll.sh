@@ -49,6 +49,15 @@ init_global_variables() {
     if [ "$UNISON_SYNC_PATH_CHE" != "" ]; then
         UNISON_AGENT_COMMAND="${UNISON_AGENT_COMMAND} &&
         UNISON=${PWD}/.unison${CONTAINER_NAME} ${PWD}/unison -force ${CHE_DOC_PATH} ${CHE_DOC_PATH} ssh://\${UNISON_SSH_USER}@\${SSH_IP}:\${UNISON_SSH_PORT}//srv/jekyll/_docs/che 
+        \${UNISON_REPEAT} -sshargs '-i ${HOME}/.ssh/jekyll_id_rsa${CONTAINER_NAME} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' ${DEBUG_UNISON} &&
+        UNISON=${PWD}/.unison${CONTAINER_NAME} ${PWD}/unison -force ${CHE_DOC_PATH}/assets/imgs ${CHE_DOC_PATH}/assets/imgs ssh://\${UNISON_SSH_USER}@\${SSH_IP}:\${UNISON_SSH_PORT}//srv/jekyll/_docs/assets/imgs 
+        \${UNISON_REPEAT} -sshargs '-i ${HOME}/.ssh/jekyll_id_rsa${CONTAINER_NAME} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' ${DEBUG_UNISON} &&
+        UNISON=${PWD}/.unison${CONTAINER_NAME} ${PWD}/unison -force ${UNISON_SYNC_PATH}/_docs/assets/imgs/codenvy ${UNISON_SYNC_PATH}/_docs/assets/imgs/codenvy ssh://\${UNISON_SSH_USER}@\${SSH_IP}:\${UNISON_SSH_PORT}//srv/jekyll/_docs/assets/imgs/codenvy 
+        \${UNISON_REPEAT} -sshargs '-i ${HOME}/.ssh/jekyll_id_rsa${CONTAINER_NAME} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' ${DEBUG_UNISON}" 
+  
+    else
+        UNISON_AGENT_COMMAND="${UNISON_AGENT_COMMAND} && 
+        UNISON=${PWD}/.unison${CONTAINER_NAME} ${PWD}/unison -force ${UNISON_SYNC_PATH}/_docs/assets/imgs ${UNISON_SYNC_PATH}/_docs/assets/imgs ssh://\${UNISON_SSH_USER}@\${SSH_IP}:\${UNISON_SSH_PORT}//srv/jekyll/_docs/assets/imgs 
         \${UNISON_REPEAT} -sshargs '-i ${HOME}/.ssh/jekyll_id_rsa${CONTAINER_NAME} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' ${DEBUG_UNISON}" 
     fi
     

@@ -14,10 +14,15 @@ ignorearchives = true
 # Some regexps specifying names and paths to ignore
 ignore = Path _site/*
 ignore = Path _site
+ignore = Path che/assets/*
+ignore = Path che/assets
+ignore = Path codenvy/*
+ignore = Path codenvy
+ignore = Path _docs/assets/imgs/*
+ignore = Path _docs/assetsimgs/
 ignore = Path _docs/che/*
 ignore = Path _docs/che
-ignore = Path docs/images/*
-ignore = Path docs/images
+ignore = Path imgs/*.*
 ignore = Path .jekyll-metadata
 ignore = Path .sass-cache
 #ignore = Name temp.*
