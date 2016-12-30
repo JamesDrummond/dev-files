@@ -202,8 +202,8 @@ docker_installed() {
         sudo apt-add-repository -y ppa:brightbox/ruby-ng
         sudo apt-get update
         sudo apt-get -y install ruby2.2 ruby2.2-dev build-essential
-        sudo gem install -y jekyll -v 3.3.1
-        sudo gem install -y jekyll-feed jekyll-redirect-from jekyll-sitemap
+        sudo gem install jekyll -v 3.3.1
+        sudo gem install jekyll-feed jekyll-redirect-from jekyll-sitemap
     fi
 }
 
