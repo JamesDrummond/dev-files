@@ -149,11 +149,11 @@ debug() {
 }
 
 error() {
-  echo  "---------------------------------------"
-  echo "!!!"
-  echo "!!! ${1}"
-  echo "!!!"
-  echo  "---------------------------------------"
+  echo  "${RED}---------------------------------------"
+  echo "${RED}!!!"
+  echo "${RED}!!! ${1}"
+  echo "${RED}!!!"
+  echo  "${RED}---------------------------------------"
   return 1
 }
 
@@ -197,7 +197,13 @@ docker_installed() {
         sudo apt-get update
         sudo apt-get -y install docker-engine
         sudo apt-get -y install python-pip
-        sudo pip install docker-compose        
+        sudo pip install docker-compose
+        # Install native jekyll. This should be seperated into seperate command.
+        sudo apt-add-repository -y ppa:brightbox/ruby-ng
+        sudo apt-get update
+        sudo apt-get -y install ruby2.2 ruby2.2-dev build-essential
+        sudo gem install -y jekyll -v 3.3.1
+        sudo gem install -y jekyll-feed jekyll-redirect-from jekyll-sitemap
     fi
 }
 
