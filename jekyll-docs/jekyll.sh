@@ -204,6 +204,10 @@ docker_installed() {
         sudo apt-get -y install ruby2.2 ruby2.2-dev build-essential
         sudo gem install jekyll -v 3.3.1
         sudo gem install jekyll-feed jekyll-redirect-from jekyll-sitemap
+        # Install native html-proofer(MIT license). https://github.com/gjtorikian/html-proofer
+        # htmlproofer --extension .html.erb ./out
+        sudo apt-get install zlib1g-dev
+        sudo gem install html-proofer -v 3.4.0
     fi
 }
 
