@@ -63,7 +63,7 @@ init_global_variables() {
     
     
     export JEKYLL_SERVE_COMPLETE=false
-    JEKYLL_COMMAND="docker exec ${CONTAINER_NAME} jekyll serve --force_polling --watch --incremental"
+    JEKYLL_COMMAND="sudo docker exec ${CONTAINER_NAME} jekyll serve --force_polling --watch --incremental"
   }
   
 check_status() {
